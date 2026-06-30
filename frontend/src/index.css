@@ -69,12 +69,12 @@ body {
   background: var(--gold-primary);
 }
 
-/* App Layout Grid */
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100vw;
+  background-color: var(--bg-page);
 }
 
 /* Header styling */
