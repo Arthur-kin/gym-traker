@@ -286,18 +286,18 @@ function App() {
             Gym Floor Layout
           </button>
           <button
-            className={`nav-item ${activeTab === 'analytics' ? 'active' : ''}`}
-            onClick={() => setActiveTab('analytics')}
-          >
-            <BarChart2 size={18} />
-            Workout Analytics
-          </button>
-          <button
             className={`nav-item ${activeTab === 'coach' ? 'active' : ''}`}
             onClick={() => setActiveTab('coach')}
           >
             <Award size={18} />
             AI Coach
+          </button>
+          <button
+            className={`nav-item ${activeTab === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analytics')}
+          >
+            <BarChart2 size={18} />
+            Workout Analytics
           </button>
         </div>
 
@@ -377,17 +377,17 @@ function App() {
               onChangeLayout={setLayout}
               onSelectEquipment={setSelectedEquipment}
             />
-          ) : activeTab === 'analytics' ? (
-            <AnalyticsCharts 
-              logs={workoutLogs} 
-              onDeleteLog={handleDeleteLog}
-              onEditLog={(log) => setEditingLog(log)}
-            />
-          ) : (
+          ) : activeTab === 'coach' ? (
             <CoachDashboard
               layout={layout}
               userProfile={userProfile}
               onStartSession={handleStartWorkoutSession}
+            />
+          ) : (
+            <AnalyticsCharts 
+              logs={workoutLogs} 
+              onDeleteLog={handleDeleteLog}
+              onEditLog={(log) => setEditingLog(log)}
             />
           )}
         </main>

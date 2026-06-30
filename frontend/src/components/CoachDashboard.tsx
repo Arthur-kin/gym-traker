@@ -597,6 +597,38 @@ const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, userProfile, on
           box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4);
         }
 
+        /* Dark Theme overrides for Coach Center contrast */
+        .theme-dark-purple .ppl-exercise-item {
+          background: rgba(255, 255, 255, 0.03) !important;
+          border-color: rgba(255, 255, 255, 0.06) !important;
+        }
+
+        .theme-dark-purple .ppl-tabs {
+          background: rgba(255, 255, 255, 0.03) !important;
+          border-color: rgba(255, 255, 255, 0.06) !important;
+        }
+
+        .theme-dark-purple .experience-dropdown {
+          background-color: rgba(255, 255, 255, 0.04) !important;
+          border-color: rgba(255, 255, 255, 0.08) !important;
+          color: #f1ecf9 !important;
+        }
+
+        .theme-dark-purple .experience-dropdown option {
+          background-color: #181524 !important;
+          color: #f1ecf9 !important;
+        }
+
+        .theme-dark-purple .ppl-empty-box {
+          border-color: rgba(255, 255, 255, 0.08) !important;
+          color: var(--text-muted-dark) !important;
+        }
+
+        .theme-dark-purple .goal-card {
+          background: rgba(255, 255, 255, 0.02) !important;
+          border-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
         .recommendations-panel {
           background-color: var(--bg-card);
           border: 1px solid var(--border-light);
@@ -891,7 +923,7 @@ const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, userProfile, on
               </button>
             </>
           ) : (
-            <div style={{
+            <div className="ppl-empty-box" style={{
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
