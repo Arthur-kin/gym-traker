@@ -1,0 +1,95 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 健身房佈局
+model GymLayout {
+  id        String            @id @default(uuid())
+  name      String            @default("My Home Gym")
+  width     Int               @default(12) // 網格寬度 (列數)
+  height    Int               @default(12) // 網格高度 (行數)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  equipment PlacedEquipment[]
+}
+
+// 放置在畫布上的器材實例
+model PlacedEquipment {
+  id           String       @id @default(uuid())
+  layoutId     String
+  layout       GymLayout    @relation(fields: [layoutId], references: [id], onDelete: Cascade)
+  type         String       // 例如: POWER_RACK, BENCH_PRESS, DUMBBELLS, TREADMILL, CABLE_MACHINE, LAT_PULLDOWN, ROW_MACHINE, KETTLEBELLS
+  customName   String       // 使用者自訂名稱
+  muscleGroup  String       // 主要訓練肌群: CHEST, BACK, LEGS, SHOULDERS, ARMS, CORE, CARDIO
+  gridX        Int          // 畫布中的 X 座標
+  gridY        Int          // 畫布中的 Y 座標
+  rotation     Int          // 旋轉角度 (0, 90, 180, 270)
+  createdAt    DateTime     @default(now())
+  logs         WorkoutLog[]
+
+  @@index([layoutId])
+}
+
+// 訓練紀錄
+model WorkoutLog {
+  id          String          @id @default(uuid())
+  equipmentId String
+  equipment   PlacedEquipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  loggedAt    DateTime        @default(now()) // 記錄時間
+  sets        WorkoutSet[]
+  notes       String?
+
+  @@index([equipmentId])
+  @@index([loggedAt])
+}
+
+// 每一組的詳細重量與次數
+model WorkoutSet {
+  id           String     @id @default(uuid())
+  logId        String
+  log          WorkoutLog @relation(fields: [logId], references: [id], onDelete: Cascade)
+  setNumber    Int        // 第幾組 (1, 2, 3...)
+  weight       Float      // 重量 (kg 或 lbs)
+  reps         Int        // 次數
+  rpe          Int?       // 自覺強度 (1-10)
+  incline      Float?     // 有氧坡度 (%)
+  resistance   Int?       // 有氧阻力段數 (Level)
+  heartRate    Int?       // 有氧平均心率 (BPM)
+
+  @@index([logId])
+}
+
+// 使用者基本特徵檔案
+model UserProfile {
+  id          String   @id @default(uuid())
+  height      Float?   // 身高 (cm)
+  weight      Float?   // 體重 (kg)
+  birthdate   String?  // 生日 (格式: YYYY-MM-DD)
+  experience  String?  // 經驗: BEGINNER, INTERMEDIATE, ADVANCED
+  fitnessGoal String?  // 目標: LOSE_FAT, BUILD_MUSCLE, MAINTENANCE
+  updatedAt   DateTime @updatedAt
+}
+
+// 訓練目標與挑戰
+model Goal {
+  id           String   @id @default(uuid())
+  title        String   // 目標/挑戰名稱，例如：「深蹲突破 100 kg」、「本週有氧跑步 10 km」
+  type         String   // "GOAL" (長期目標) 或 "CHALLENGE" (短期挑戰)
+  metricType   String   // 進度追蹤指標: "VOLUME" (總量), "DISTANCE" (距離), "DURATION" (時間), "WEIGHT_MAX" (最大重量), "CUSTOM" (純手動勾選)
+  targetValue  Float    // 目標值
+  currentValue Float    @default(0) // 目前累計值
+  unit         String   // 單位，例如: "kg", "km", "minutes", "times"
+  deadline     String?  // 截止日期 (格式: YYYY-MM-DD)
+  isCompleted  Boolean  @default(false)
+  aiFeedback   String?  // 儲存 AI Coach 對此目標的評估反饋
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isCompleted, metricType])
+}
+

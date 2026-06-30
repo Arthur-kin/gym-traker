@@ -1,0 +1,55 @@
+
+services:
+  gym-db:
+    image: postgres:15-alpine
+    container_name: gym-db
+    restart: unless-stopped
+    networks:
+      - vault_net
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  gym-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gym-backend
+    restart: unless-stopped
+    networks:
+      - vault_net
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@gym-db:5432/${POSTGRES_DB}?schema=public"
+      PORT: 5000
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
+    depends_on:
+      - gym-db
+    expose:
+      - "5000"
+
+  gym-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gym-frontend
+    restart: unless-stopped
+    networks:
+      - vault_net
+    ports:
+      - "8085:8085"
+    depends_on:
+      - gym-backend
+
+volumes:
+  db_data:
+
+networks:
+  vault_net:
+    external: true
+    name: vaultwarden_vault_net

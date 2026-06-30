@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <defs>
+    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0be7a" />
+      <stop offset="50%" stop-color="#cca353" />
+      <stop offset="100%" stop-color="#a67f37" />
+    </linearGradient>
+  </defs>
+  <!-- Background glow circle -->
+  <circle cx="12" cy="12" r="10" fill="rgba(204, 163, 83, 0.05)" />
+  <!-- Left Weight Plates -->
+  <rect x="3" y="6" width="2.5" height="12" rx="1.25" fill="url(#gold-grad)" />
+  <rect x="6" y="8" width="1.5" height="8" rx="0.75" fill="url(#gold-grad)" />
+  <!-- Dumbbell Handle -->
+  <rect x="7.5" y="11" width="9" height="2" rx="0.5" fill="url(#gold-grad)" />
+  <!-- Right Weight Plates -->
+  <rect x="16.5" y="8" width="1.5" height="8" rx="0.75" fill="url(#gold-grad)" />
+  <rect x="18.5" y="6" width="2.5" height="12" rx="1.25" fill="url(#gold-grad)" />
+  <!-- Decorative Sparkles -->
+  <path d="M12 3 L12 5 M12 19 L12 21 M4 12 L6 12 M18 12 L20 12" stroke="#cca353" stroke-width="1.2" stroke-linecap="round" opacity="0.6" />
+</svg>
