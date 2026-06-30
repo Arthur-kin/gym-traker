@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
+import { useToast } from './Toast';
 
 // Explicit Union Types for stricter type-safety
 export type ExperienceLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
@@ -21,6 +22,7 @@ interface ProfileModalProps {
 }
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave }) => {
+  const { showToast } = useToast();
   // Initialize state directly from profile to reduce double renders on mount
   const [height, setHeight] = useState(profile?.height?.toString() || '');
   const [weight, setWeight] = useState(profile?.weight?.toString() || '');
@@ -63,11 +65,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
 
     // Boundary constraints check
     if (h !== null && (isNaN(h) || h < 30 || h > 300)) {
-      alert('Please enter a valid height (30-300 cm)');
+      showToast('Please enter a valid height (30-300 cm)', 'error');
       return;
     }
     if (w !== null && (isNaN(w) || w < 2 || w > 500)) {
-      alert('Please enter a valid weight (2-500 kg)');
+      showToast('Please enter a valid weight (2-500 kg)', 'error');
       return;
     }
 
@@ -83,7 +85,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
     if (success) {
       onClose();
     } else {
-      alert('Save failed. Please check your connection.');
+      showToast('Save failed. Please check your connection.', 'error');
     }
   };
 

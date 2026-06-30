@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Calendar, MessageSquare } from 'lucide-react';
 import { PlacedEquipment, WorkoutLog, WorkoutSet } from '../App';
+import { useToast } from './Toast';
 
 interface WorkoutLoggerProps {
   equipment: PlacedEquipment;
@@ -39,6 +40,7 @@ const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({
   onDeleteLog,
   onChangeMuscleGroup
 }) => {
+  const { showToast } = useToast();
   const [sets, setSets] = useState<SetInput[]>([{ weight: '', reps: '', rpe: '', incline: '', resistance: '', heartRate: '' }]);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,7 +122,7 @@ const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!equipment.id) {
-      alert('Please save the gym layout first before recording logs!');
+      showToast('Please save the gym layout first before recording logs!', 'error');
       return;
     }
 
@@ -128,7 +130,7 @@ const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({
     for (let i = 0; i < sets.length; i++) {
       const s = sets[i];
       if (!s.weight || !s.reps || isNaN(parseFloat(s.weight)) || isNaN(parseInt(s.reps))) {
-        alert(isCardio ? `Please enter valid distance and time for Set ${i + 1}!` : `Please enter valid weight and reps for Set ${i + 1}!`);
+        showToast(isCardio ? `Please enter valid distance and time for Set ${i + 1}!` : `Please enter valid weight and reps for Set ${i + 1}!`, 'error');
         return;
       }
 
@@ -170,7 +172,7 @@ const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({
       setNotes('');
       onClose();
     } else {
-      alert('Failed to save log. Please check your connection.');
+      showToast('Failed to save log. Please check your connection.', 'error');
     }
   };
 

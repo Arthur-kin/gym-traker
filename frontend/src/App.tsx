@@ -5,6 +5,7 @@ import WorkoutLogger from './components/WorkoutLogger';
 import AnalyticsCharts from './components/AnalyticsCharts';
 import ProfileModal, { UserProfileData } from './components/ProfileModal';
 import GoalsDashboard from './components/GoalsDashboard';
+import { useToast } from './components/Toast';
 
 export interface PlacedEquipment {
   id?: string;
@@ -45,6 +46,7 @@ export interface WorkoutLog {
 }
 
 function App() {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'layout' | 'analytics' | 'goals'>('layout');
   const [layout, setLayout] = useState<GymLayout | null>(null);
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
@@ -62,31 +64,40 @@ function App() {
     ? { start: '#c084fc', mid: '#a855f7', end: '#7e22ce' }
     : { start: '#dfbf7c', mid: '#cca353', end: '#a67f37' };
 
-  // Fetch initial layout, logs, and profile from server
+  // Fetch initial layout, logs, and profile from server (Non-blocking logs load)
   const fetchData = async () => {
     setIsLoading(true);
+    
+    // Fetch layout and profile (critical for initial layout view)
     try {
-      const layoutRes = await fetch('/api/layout');
+      const [layoutRes, profileRes] = await Promise.all([
+        fetch('/api/layout'),
+        fetch('/api/profile')
+      ]);
+      
       if (layoutRes.ok) {
         const layoutData = await layoutRes.json();
         setLayout(layoutData);
       }
-
-      const logsRes = await fetch('/api/logs');
-      if (logsRes.ok) {
-        const logsData = await logsRes.json();
-        setWorkoutLogs(logsData);
-      }
-
-      const profileRes = await fetch('/api/profile');
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setUserProfile(profileData);
       }
     } catch (err) {
-      console.error('Error fetching backend data:', err);
+      console.error('Error fetching layout/profile data:', err);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Instantly unlock UI!
+    }
+
+    // Fetch logs concurrently in the background (non-blocking)
+    try {
+      const logsRes = await fetch('/api/logs');
+      if (logsRes.ok) {
+        const logsData = await logsRes.json();
+        setWorkoutLogs(logsData);
+      }
+    } catch (err) {
+      console.error('Error fetching logs asynchronously:', err);
     }
   };
 
@@ -107,13 +118,13 @@ function App() {
       if (res.ok) {
         const updatedLayout = await res.json();
         setLayout(updatedLayout);
-        alert('Gym layout saved successfully!');
+        showToast('Gym layout saved successfully!', 'success');
       } else {
-        alert('Failed to save layout. Please try again.');
+        showToast('Failed to save layout. Please try again.', 'error');
       }
     } catch (err) {
       console.error('Error saving layout:', err);
-      alert('An error occurred while saving the layout.');
+      showToast('An error occurred while saving the layout.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -134,6 +145,7 @@ function App() {
       if (res.ok) {
         const newLog = await res.json();
         setWorkoutLogs((prev) => [newLog, ...prev]);
+        showToast('Workout log saved successfully!', 'success');
         return true;
       }
       return false;
@@ -157,7 +169,7 @@ function App() {
       if (res.ok) {
         const updated = await res.json();
         setWorkoutLogs((prev) => prev.map((log) => log.id === logId ? updated : log));
-        fetchData();
+        showToast('Workout log updated successfully!', 'success');
         return true;
       }
       return false;
@@ -175,6 +187,7 @@ function App() {
       });
       if (res.ok) {
         setWorkoutLogs((prev) => prev.filter((log) => log.id !== logId));
+        showToast('Workout log deleted successfully!', 'success');
         return true;
       }
       return false;
@@ -194,6 +207,7 @@ function App() {
       if (res.ok) {
         const updated = await res.json();
         setUserProfile(updated);
+        showToast('Profile saved successfully!', 'success');
         return true;
       }
       return false;

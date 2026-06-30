@@ -608,10 +608,13 @@ app.post('/api/layout', async (req: Request, res: Response) => {
   }
 });
 
-// 3. GET /api/logs - 取得所有訓練紀錄 (依時間倒序，包含組數及器材資訊)
+// 3. GET /api/logs - 取得所有訓練紀錄 (依時間倒序，包含組數及器材資訊，支援選填分頁)
 app.get('/api/logs', async (req: Request, res: Response) => {
   try {
-    const logs = await prisma.workoutLog.findMany({
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 0; // 0 means no pagination (all logs)
+
+    const queryOptions: any = {
       include: {
         equipment: true,
         sets: {
@@ -619,7 +622,28 @@ app.get('/api/logs', async (req: Request, res: Response) => {
         }
       },
       orderBy: { loggedAt: 'desc' }
-    });
+    };
+
+    if (limit > 0) {
+      queryOptions.skip = (page - 1) * limit;
+      queryOptions.take = limit;
+    }
+
+    const logs = await prisma.workoutLog.findMany(queryOptions);
+
+    if (limit > 0) {
+      const totalCount = await prisma.workoutLog.count();
+      return res.json({
+        logs,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages: Math.ceil(totalCount / limit)
+        }
+      });
+    }
+
     res.json(logs);
   } catch (error) {
     console.error('Error fetching logs:', error);

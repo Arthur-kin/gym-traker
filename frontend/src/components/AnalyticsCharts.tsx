@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
 import { Award, TrendingUp, Calendar, ArrowRight, ShieldAlert, Activity, Edit2, Trash2 } from 'lucide-react';
 import { WorkoutLog } from '../App';
+import { useToast } from './Toast';
 
 interface AnalyticsChartsProps {
   logs: WorkoutLog[];
@@ -32,9 +33,11 @@ const MUSCLE_DETAILS: Record<string, { label: string; parent: string }> = {
 };
 
 const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ logs, onDeleteLog, onEditLog }) => {
+  const { showToast } = useToast();
   const [selectedMuscle, setSelectedMuscle] = useState<string>('ANY');
   const [historySearch, setHistorySearch] = useState('');
   const [historyMuscleFilter, setHistoryMuscleFilter] = useState('ALL');
+  const [visibleLogsCount, setVisibleLogsCount] = useState(15);
 
   const [selectedMonth, setSelectedMonth] = useState<string>(() => {
     const today = new Date();
@@ -217,11 +220,11 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ logs, onDeleteLog, on
         const data = await res.json();
         setReportData(data);
       } else {
-        alert('Failed to generate report. Please try again.');
+        showToast('Failed to generate report. Please try again.', 'error');
       }
     } catch (err) {
       console.error('Error fetching monthly report:', err);
-      alert('An error occurred. Check your connection.');
+      showToast('An error occurred. Check your connection.', 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -278,12 +281,12 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ logs, onDeleteLog, on
           console.error('Failed to save chat history to localStorage:', storageErr);
         }
       } else {
-        alert('AI coach error. Please try again.');
+        showToast('AI coach error. Please try again.', 'error');
         setChatHistory(previousHistory); // Rollback state
       }
     } catch (err) {
       console.error('Chat error:', err);
-      alert('Network error. Please check your connection.');
+      showToast('Network error. Please check your connection.', 'error');
       setChatHistory(previousHistory); // Rollback state
     } finally {
       setIsWaitingForChat(false);
@@ -706,7 +709,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ logs, onDeleteLog, on
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredHistoryLogs.map((log) => {
+                  {filteredHistoryLogs.slice(0, visibleLogsCount).map((log) => {
                     const d = new Date(log.loggedAt);
                     const formattedDate = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
                     const isCardio = log.equipment?.muscleGroup === 'CARDIO';
@@ -775,6 +778,17 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ logs, onDeleteLog, on
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+          {filteredHistoryLogs.length > visibleLogsCount && (
+            <div style={{ textAlign: 'center', marginTop: '12px' }}>
+              <button
+                onClick={() => setVisibleLogsCount((prev) => prev + 15)}
+                className="btn-gold"
+                style={{ padding: '6px 16px', fontSize: '12px', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                Load More
+              </button>
             </div>
           )}
         </div>
