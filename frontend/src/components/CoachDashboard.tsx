@@ -443,6 +443,18 @@ const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, userProfile, on
           display: flex;
           flex-direction: column;
           gap: 16px;
+          color: var(--text-dark);
+        }
+
+        .coach-card-panel h3 {
+          color: var(--text-dark) !important;
+        }
+
+        /* Neon purple glow for dark theme panels */
+        .theme-dark-purple .coach-card-panel {
+          background: rgba(30, 27, 45, 0.75) !important;
+          border: 1px solid rgba(168, 85, 247, 0.25) !important;
+          box-shadow: var(--shadow-lg), 0 0 15px rgba(168, 85, 247, 0.15) !important;
         }
 
         .experience-select-bar {
@@ -689,7 +701,16 @@ const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, userProfile, on
           padding: 24px;
           margin-bottom: 32px;
           box-shadow: var(--shadow-md);
+          color: var(--text-dark);
         }
+
+        /* Neon purple glow for dark theme recommendations panel */
+        .theme-dark-purple .recommendations-panel {
+          background: rgba(30, 27, 45, 0.75) !important;
+          border: 1px solid rgba(168, 85, 247, 0.25) !important;
+          box-shadow: var(--shadow-lg), 0 0 15px rgba(168, 85, 247, 0.15) !important;
+        }
+
         .recommendations-header {
           display: flex;
           justify-content: space-between;
