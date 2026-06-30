@@ -386,6 +386,7 @@ function App() {
           ) : (
             <CoachDashboard
               layout={layout}
+              userProfile={userProfile}
               onStartSession={handleStartWorkoutSession}
             />
           )}

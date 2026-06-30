@@ -107,11 +107,12 @@ function getDeadlineColor(deadline: string | null): string {
 
 interface CoachDashboardProps {
   layout: any;
+  userProfile: any;
   onStartSession: (exercises: { equipmentId: string | null; sets: number }[]) => void;
 }
 
 // ─── CoachDashboard Component ────────────────────────────────────────
-const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, onStartSession }) => {
+const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, userProfile, onStartSession }) => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -133,6 +134,13 @@ const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, onStartSession 
     return saved ? JSON.parse(saved) : null;
   });
   const [experience, setExperience] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('BEGINNER');
+
+  // Synchronize PPL experience level dropdown with User Profile setting
+  useEffect(() => {
+    if (userProfile?.experience) {
+      setExperience(userProfile.experience);
+    }
+  }, [userProfile]);
   const [generatingPPL, setGeneratingPPL] = useState(false);
   const [activePPLDay, setActivePPLDay] = useState<'push' | 'pull' | 'legs'>('push');
 
@@ -426,7 +434,8 @@ const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, onStartSession 
         .coach-card-panel {
           flex: 1 1 500px;
           min-width: 320px;
-          background: var(--bg-panel-light);
+          background: var(--bg-card-glass);
+          backdrop-filter: blur(12px);
           border: 1px solid var(--border-light);
           border-radius: 16px;
           padding: 24px;
@@ -811,32 +820,32 @@ const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, onStartSession 
             </button>
           </div>
 
+          {/* Day Tab Selectors (Always visible!) */}
+          <div className="ppl-tabs">
+            <button
+              className={`ppl-tab-btn ${activePPLDay === 'push' ? 'active' : ''}`}
+              onClick={() => setActivePPLDay('push')}
+            >
+              Push Day (推日)
+            </button>
+            <button
+              className={`ppl-tab-btn ${activePPLDay === 'pull' ? 'active' : ''}`}
+              onClick={() => setActivePPLDay('pull')}
+            >
+              Pull Day (拉日)
+            </button>
+            <button
+              className={`ppl-tab-btn ${activePPLDay === 'legs' ? 'active' : ''}`}
+              onClick={() => setActivePPLDay('legs')}
+            >
+              Legs Day (腿日)
+            </button>
+          </div>
+
           {pplPlan ? (
             <>
-              {/* Day Tab Selectors */}
-              <div className="ppl-tabs">
-                <button
-                  className={`ppl-tab-btn ${activePPLDay === 'push' ? 'active' : ''}`}
-                  onClick={() => setActivePPLDay('push')}
-                >
-                  Push Day (推日)
-                </button>
-                <button
-                  className={`ppl-tab-btn ${activePPLDay === 'pull' ? 'active' : ''}`}
-                  onClick={() => setActivePPLDay('pull')}
-                >
-                  Pull Day (拉日)
-                </button>
-                <button
-                  className={`ppl-tab-btn ${activePPLDay === 'legs' ? 'active' : ''}`}
-                  onClick={() => setActivePPLDay('legs')}
-                >
-                  Legs Day (腿日)
-                </button>
-              </div>
-
               {/* Exercises List */}
-              <div className="ppl-exercises-list">
+              <div className="ppl-exercises-list" style={{ marginTop: '12px' }}>
                 {currentRoutineDayExercises.map((ex, idx) => {
                   const hasMatchedEquip = !!ex.equipmentId;
                   const equipDetails = layout?.equipment.find((eq: any) => eq.id === ex.equipmentId);
@@ -892,7 +901,8 @@ const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, onStartSession 
               borderRadius: '12px',
               padding: '40px',
               color: 'var(--text-muted-dark)',
-              textAlign: 'center'
+              textAlign: 'center',
+              marginTop: '12px'
             }}>
               <Bot size={48} style={{ opacity: 0.3, marginBottom: '12px' }} />
               <p style={{ margin: 0, fontWeight: 500 }}>No routine generated yet.</p>
