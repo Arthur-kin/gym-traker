@@ -629,6 +629,59 @@ const CoachDashboard: React.FC<CoachDashboardProps> = ({ layout, userProfile, on
           border-color: rgba(255, 255, 255, 0.05) !important;
         }
 
+        /* Skeleton Loader Styles */
+        .skeleton-card {
+          background: var(--bg-card);
+          border: 1px solid var(--border-light);
+          border-radius: 12px;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          height: 180px;
+          animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .theme-dark-purple .skeleton-card {
+          background: rgba(255, 255, 255, 0.02) !important;
+          border-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .skeleton-line {
+          background-color: var(--border-light);
+          border-radius: 4px;
+        }
+
+        .theme-dark-purple .skeleton-line {
+          background-color: rgba(255, 255, 255, 0.06) !important;
+        }
+
+        .skeleton-title {
+          height: 18px;
+          width: 60%;
+        }
+
+        .skeleton-badge {
+          height: 14px;
+          width: 30%;
+        }
+
+        .skeleton-text-short {
+          height: 14px;
+          width: 80%;
+        }
+
+        .skeleton-text-long {
+          height: 14px;
+          width: 90%;
+        }
+
+        .skeleton-btn {
+          height: 32px;
+          width: 100%;
+          margin-top: auto;
+        }
+
         .recommendations-panel {
           background-color: var(--bg-card);
           border: 1px solid var(--border-light);

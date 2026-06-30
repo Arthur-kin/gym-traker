@@ -1310,3 +1310,10 @@ body {
   --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
   --shadow-gold: 0 8px 24px rgba(168, 85, 247, 0.2);
 }
+
+/* Global options override for Black & Purple theme dropdown lists */
+.theme-dark-purple select option,
+.theme-dark-purple option {
+  background-color: #13111c !important;
+  color: #f1ecf9 !important;
+}
