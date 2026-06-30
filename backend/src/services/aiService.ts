@@ -333,3 +333,59 @@ export async function chatWithCoach(
   const result = await chatSession.sendMessage(message);
   return result.response.text();
 }
+
+// 5. Generate PPL Workout Plan using Gemini based on layout equipment
+export async function generatePPLPlan(equipmentList: any[], experienceLevel: string): Promise<any> {
+  const ai = getAIClient();
+  if (!ai) {
+    throw new Error('Gemini API client not initialized');
+  }
+
+  const formattedEquipment = equipmentList.map(eq => ({
+    id: eq.id,
+    type: eq.type,
+    customName: eq.customName,
+    muscleGroup: eq.muscleGroup
+  }));
+
+  const prompt = `You are a professional fitness personal trainer. Please design a 3-day Push-Pull-Legs (PPL) weekly workout plan in Traditional Chinese (繁體中文) based on the user's available gym equipment list and experience level.
+
+[User Background]
+- Experience Level: ${experienceLevel}
+
+[Available Gym Equipment List (Currently Placed in Gym Layout)]
+${JSON.stringify(formattedEquipment)}
+
+[PPL Guidelines]
+1. **Push Day**: Focus on pushing movements using chest (CHEST_UPPER, CHEST_LOWER), shoulders (SHOULDERS_FRONT, SHOULDERS_LAT, SHOULDERS_POST), and triceps (ARMS_TRICEPS) equipment.
+2. **Pull Day**: Focus on pulling movements using back (BACK_LAT, BACK_UPPER, BACK_LOWER) and biceps (ARMS_BICEPS, ARMS_FOREARMS) equipment.
+3. **Legs Day**: Focus on lower body using legs (LEGS_QUADS, LEGS_HAMSTRINGS, LEGS_GLUTES, LEGS_CALVES) and abs (ABS_RECTUS, ABS_OBLIQUES) equipment.
+
+[Rules for Exercises]
+- Each exercise in the plan MUST reference an actual equipment from the [Available Gym Equipment List] using its exact "id" under the "equipmentId" property.
+- If the gym list lacks specific equipment (e.g. no triceps machines placed), you can suggest bodyweight exercises (like Push-ups or Dips) or simple dumbbell exercises, but leave "equipmentId" as null or reference a generic Dumbbells ID if present. Prioritize using placed equipment.
+- Beginner: 3 exercises per day. Intermediate: 4 exercises per day. Advanced: 5 exercises per day.
+- Recommend appropriate sets (e.g. 3-4) and reps ranges (e.g. "8-12 reps" or "10-12 reps" or "12 reps") based on the experience level.
+
+[Response Format]
+You MUST respond with ONLY a JSON object containing three arrays: "push", "pull", and "legs". Do not wrap it in markdown block.
+JSON Schema:
+{
+  "push": [
+    { "equipmentId": "string or null", "name": "string", "sets": number, "reps": "string", "notes": "string" }
+  ],
+  "pull": [...],
+  "legs": [...]
+}`;
+
+  const model = ai.getGenerativeModel({
+    model: 'gemini-2.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json'
+    }
+  });
+
+  const response = await model.generateContent(prompt);
+  const text = response.response.text().trim();
+  return JSON.parse(text);
+}

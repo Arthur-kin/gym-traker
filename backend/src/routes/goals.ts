@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../prisma';
 import { aiLimiter } from '../middleware/rateLimiter';
-import { recommendGoals, evaluateGoalFeasibility } from '../services/aiService';
+import { recommendGoals, evaluateGoalFeasibility, generatePPLPlan } from '../services/aiService';
 
 const router = Router();
 const PROFILE_ID = 'default-user-profile';
@@ -229,6 +229,35 @@ router.post('/:id/evaluate', aiLimiter, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('AI evaluation failed:', error);
     res.status(500).json({ error: 'AI evaluation failed.' });
+  }
+});
+
+// POST /api/goals/recommend-ppl - AI PPL 訓練課表推薦
+router.post('/recommend-ppl', aiLimiter, async (req: Request, res: Response) => {
+  try {
+    const { experience } = req.body;
+    const validExp = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
+    if (!experience || !validExp.includes(experience)) {
+      return res.status(400).json({ error: 'Experience level must be BEGINNER, INTERMEDIATE, or ADVANCED.' });
+    }
+
+    const layout = await prisma.gymLayout.findFirst({
+      include: { equipment: true }
+    });
+    if (!layout) {
+      return res.status(404).json({ error: 'Gym layout not found.' });
+    }
+
+    try {
+      const pplPlan = await generatePPLPlan(layout.equipment, experience);
+      res.json(pplPlan);
+    } catch (aiErr) {
+      console.error('Failed to generate PPL plan using Gemini API:', aiErr);
+      res.status(500).json({ error: 'AI PPL generation failed.' });
+    }
+  } catch (error) {
+    console.error('Failed to recommend PPL plan:', error);
+    res.status(500).json({ error: 'Failed to recommend PPL plan.' });
   }
 });
 

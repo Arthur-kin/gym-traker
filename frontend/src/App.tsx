@@ -4,7 +4,7 @@ import GymCanvas from './components/GymCanvas';
 import WorkoutLogger from './components/WorkoutLogger';
 import AnalyticsCharts from './components/AnalyticsCharts';
 import ProfileModal, { UserProfileData } from './components/ProfileModal';
-import GoalsDashboard from './components/GoalsDashboard';
+import CoachDashboard from './components/CoachDashboard';
 import { useToast } from './components/Toast';
 
 export interface PlacedEquipment {
@@ -47,7 +47,7 @@ export interface WorkoutLog {
 
 function App() {
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'layout' | 'analytics' | 'goals'>('layout');
+  const [activeTab, setActiveTab] = useState<'layout' | 'analytics' | 'coach'>('layout');
   const [layout, setLayout] = useState<GymLayout | null>(null);
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<PlacedEquipment | null>(null);
@@ -56,6 +56,10 @@ function App() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Sequential logging queue state for PPL workout routine
+  const [logQueue, setLogQueue] = useState<{ equipmentId: string; sets: number }[]>([]);
+
   const [theme, setTheme] = useState<'gold-gray' | 'dark-purple'>(() => {
     return (localStorage.getItem('gym-theme') as 'gold-gray' | 'dark-purple') || 'gold-gray';
   });
@@ -63,6 +67,27 @@ function App() {
   const gradientStops = theme === 'dark-purple'
     ? { start: '#c084fc', mid: '#a855f7', end: '#7e22ce' }
     : { start: '#dfbf7c', mid: '#cca353', end: '#a67f37' };
+
+  // Starts sequential logging for a selected PPL workout routine day
+  const handleStartWorkoutSession = (exercises: { equipmentId: string | null; sets: number }[]) => {
+    if (!exercises || exercises.length === 0) return;
+    const queue = exercises
+      .filter((ex) => !!ex.equipmentId)
+      .map((ex) => ({ equipmentId: ex.equipmentId!, sets: ex.sets }));
+
+    if (queue.length === 0) {
+      showToast('No matching placed equipment found for this routine! Place them first.', 'error');
+      return;
+    }
+
+    const firstItem = queue[0];
+    const firstEquip = layout?.equipment.find((eq) => eq.id === firstItem.equipmentId);
+    if (firstEquip) {
+      setLogQueue(queue.slice(1));
+      setSelectedEquipment(firstEquip);
+      showToast(`Starting routine workout! Let's log the first exercise: ${firstEquip.customName}`, 'info');
+    }
+  };
 
   // Fetch initial layout, logs, and profile from server (Non-blocking logs load)
   const fetchData = async () => {
@@ -146,6 +171,21 @@ function App() {
         const newLog = await res.json();
         setWorkoutLogs((prev) => [newLog, ...prev]);
         showToast('Workout log saved successfully!', 'success');
+
+        // Check if there is another exercise in queue
+        if (logQueue.length > 0) {
+          const nextItem = logQueue[0];
+          const nextEquip = layout?.equipment.find((eq) => eq.id === nextItem.equipmentId);
+          if (nextEquip) {
+            setLogQueue((prev) => prev.slice(1));
+            setTimeout(() => {
+              setSelectedEquipment(nextEquip);
+              setEditingLog(null);
+              showToast(`Next exercise: ${nextEquip.customName}`, 'info');
+            }, 400);
+          }
+        }
+
         return true;
       }
       return false;
@@ -253,11 +293,11 @@ function App() {
             Workout Analytics
           </button>
           <button
-            className={`nav-item ${activeTab === 'goals' ? 'active' : ''}`}
-            onClick={() => setActiveTab('goals')}
+            className={`nav-item ${activeTab === 'coach' ? 'active' : ''}`}
+            onClick={() => setActiveTab('coach')}
           >
             <Award size={18} />
-            Goals & Challenges
+            AI Coach
           </button>
         </div>
 
@@ -344,7 +384,10 @@ function App() {
               onEditLog={(log) => setEditingLog(log)}
             />
           ) : (
-            <GoalsDashboard />
+            <CoachDashboard
+              layout={layout}
+              onStartSession={handleStartWorkoutSession}
+            />
           )}
         </main>
       )}
@@ -361,6 +404,7 @@ function App() {
             onClose={() => {
               setSelectedEquipment(null);
               setEditingLog(null);
+              setLogQueue([]); // Clear session queue on manual cancel
             }}
             onAddLog={handleAddLog}
             onUpdateLog={handleUpdateLog}
